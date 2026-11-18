@@ -1,6 +1,8 @@
-window.addEventListener('load', () => {
-  document.body.classList.add('loaded');
-});
+const reduceMotionPreference = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+document.addEventListener('DOMContentLoaded', () => {
+  window.setTimeout(() => document.body.classList.add('loaded'), reduceMotionPreference ? 0 : 900);
+}, { once: true });
 
 const revealItems = document.querySelectorAll('.reveal');
 const revealObserver = new IntersectionObserver(
@@ -15,6 +17,38 @@ const revealObserver = new IntersectionObserver(
 );
 
 revealItems.forEach((item) => revealObserver.observe(item));
+
+const memoryVideos = document.querySelectorAll('.video-card video');
+const videoObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      const video = entry.target;
+      if (entry.isIntersecting) {
+        video.play().catch(() => {});
+      } else if (!video.paused) {
+        video.pause();
+      }
+    });
+  },
+  { threshold: 0.35, rootMargin: '80px 0px' }
+);
+
+memoryVideos.forEach((video) => {
+  video.muted = true;
+  const errorMessage = document.createElement('p');
+  errorMessage.className = 'video-error-message';
+  errorMessage.setAttribute('role', 'status');
+  errorMessage.textContent = 'Video tidak dapat dimuat. Coba muat ulang halaman.';
+  errorMessage.hidden = true;
+  video.insertAdjacentElement('afterend', errorMessage);
+  video.addEventListener('error', () => {
+    errorMessage.hidden = false;
+  });
+  video.addEventListener('loadeddata', () => {
+    errorMessage.hidden = true;
+  });
+  videoObserver.observe(video);
+});
 
 const photoViewer = document.getElementById('photo-viewer');
 const photoViewerImage = document.getElementById('photo-viewer-image');
@@ -318,6 +352,185 @@ if (bgMusic) {
   bgMusic.play().catch(() => {
     document.addEventListener('pointerdown', resumeMusic);
     document.addEventListener('keydown', resumeMusic);
+  });
+}
+
+const memoryFilm = document.getElementById('memory-film');
+const memoryFilmImage = document.getElementById('memory-film-image');
+const memoryFilmVideo = document.getElementById('memory-film-video');
+const memoryFilmLine = document.getElementById('memory-film-line');
+const memoryFilmType = document.getElementById('memory-film-type');
+const memoryFilmStatus = document.getElementById('memory-film-status');
+const memoryFilmCount = document.getElementById('memory-film-count');
+const memoryFilmProgress = document.getElementById('memory-film-progress');
+const memoryFilmToggle = document.getElementById('memory-film-toggle');
+const memoryFilmStart = document.getElementById('play-memory-film');
+const memoryFilmClose = document.getElementById('memory-film-close');
+const memoryFilmPrevious = document.getElementById('memory-film-previous');
+const memoryFilmNext = document.getElementById('memory-film-next');
+
+if (memoryFilm && memoryFilmImage && memoryFilmVideo && memoryFilmLine) {
+  const videoLines = [
+    'Ada cerita sederhana di setiap potongan waktu ini.',
+    'Hari biasa terasa istimewa karena dijalani bersamamu.',
+    'Tawa kecil yang masih hangat saat diingat kembali.',
+    'Beberapa momen memang ingin disimpan lebih lama.',
+    'Terima kasih sudah pernah menjadi bagian dari ceritaku.',
+    'Di antara banyak hari, ada kenangan yang selalu tinggal.',
+    'Satu senyum darimu pernah membuat hari terasa ringan.',
+    'Waktu berlalu, tapi kenangan ini tetap punya tempat.',
+    'Tidak semua hal indah harus berlangsung selamanya.',
+    'Aku menyimpan setiap cerita ini dengan hati-hati.',
+    'Pernah ada bahagia yang tumbuh dari hal sederhana.',
+    'Semoga semua kenangan ini selalu terasa hangat.',
+    'Untuk Jeje, bagian indah dari perjalanan hidupku.',
+  ];
+  const photoScenes = zoomableImages.map((image, index) => ({
+    type: 'photo',
+    src: image.currentSrc || image.src,
+    poster: image.currentSrc || image.src,
+    line: image.closest('.gallery-item')?.querySelector('.caption')?.textContent.trim()
+      || image.alt
+      || `Kenangan indah nomor ${index + 1}`,
+  }));
+  const videoScenes = Array.from(memoryVideos).map((video, index) => ({
+    type: 'video',
+    src: video.querySelector('source')?.src || '',
+    poster: video.poster,
+    line: videoLines[index] || 'Satu lagi potongan kecil dari cerita kita.',
+  }));
+  const memoryFilmScenes = [...photoScenes, ...videoScenes];
+  let memoryFilmIndex = 0;
+  let memoryFilmTimer;
+  let memoryFilmDeadline = 0;
+  let memoryFilmRemaining = 4500;
+  let memoryFilmPaused = false;
+  let memoryFilmReturnFocus = null;
+
+  function scheduleMemoryFilmAdvance(delay) {
+    window.clearTimeout(memoryFilmTimer);
+    memoryFilmRemaining = delay;
+    memoryFilmDeadline = Date.now() + delay;
+    if (!memoryFilmPaused) {
+      memoryFilmTimer = window.setTimeout(() => showMemoryFilmScene(memoryFilmIndex + 1), delay);
+    }
+  }
+
+  function showMemoryFilmScene(index) {
+    window.clearTimeout(memoryFilmTimer);
+    memoryFilmIndex = (index + memoryFilmScenes.length) % memoryFilmScenes.length;
+    const scene = memoryFilmScenes[memoryFilmIndex];
+
+    memoryFilmImage.classList.remove('is-active');
+    memoryFilmVideo.classList.remove('is-active');
+    memoryFilmVideo.pause();
+    memoryFilmVideo.onloadedmetadata = null;
+    memoryFilmVideo.onended = null;
+    memoryFilmVideo.onerror = null;
+    memoryFilmLine.textContent = scene.line;
+    memoryFilmType.textContent = scene.type === 'video' ? 'POTONGAN VIDEO' : 'FOTO KENANGAN';
+    memoryFilmCount.textContent = `${memoryFilmIndex + 1} / ${memoryFilmScenes.length}`;
+    memoryFilmProgress.style.width = `${((memoryFilmIndex + 1) / memoryFilmScenes.length) * 100}%`;
+
+    if (scene.type === 'photo') {
+      memoryFilmVideo.hidden = true;
+      memoryFilmVideo.removeAttribute('src');
+      memoryFilmVideo.load();
+      memoryFilmImage.hidden = false;
+      memoryFilmImage.src = scene.src;
+      memoryFilmImage.alt = scene.line;
+      requestAnimationFrame(() => memoryFilmImage.classList.add('is-active'));
+      memoryFilmStatus.textContent = 'Sebuah cerita kecil tentang kita';
+      scheduleMemoryFilmAdvance(4500);
+      return;
+    }
+
+    memoryFilmImage.hidden = true;
+    memoryFilmVideo.hidden = false;
+    memoryFilmVideo.poster = scene.poster;
+    memoryFilmVideo.src = scene.src;
+    memoryFilmVideo.load();
+    requestAnimationFrame(() => memoryFilmVideo.classList.add('is-active'));
+    memoryFilmStatus.textContent = 'Suara video dimatikan · musik latar tetap berjalan';
+    scheduleMemoryFilmAdvance(8000);
+    memoryFilmVideo.onloadedmetadata = () => {
+      if (memoryFilmScenes[memoryFilmIndex] !== scene || !Number.isFinite(memoryFilmVideo.duration)) return;
+      scheduleMemoryFilmAdvance(Math.min(Math.max(memoryFilmVideo.duration * 1000, 4500), 18000));
+    };
+    memoryFilmVideo.onended = () => {
+      if (!memoryFilmPaused) showMemoryFilmScene(memoryFilmIndex + 1);
+    };
+    memoryFilmVideo.onerror = () => {
+      if (memoryFilmScenes[memoryFilmIndex] === scene) {
+        memoryFilmStatus.textContent = 'Pratinjau tetap tampil sementara video dimuat';
+        scheduleMemoryFilmAdvance(5000);
+      }
+    };
+    if (!memoryFilmPaused) memoryFilmVideo.play().catch(() => {});
+  }
+
+  function openMemoryFilm() {
+    if (memoryFilmScenes.length === 0) return;
+    memoryFilmReturnFocus = memoryFilmStart;
+    memoryFilmPaused = false;
+    memoryFilmToggle.textContent = 'Ⅱ';
+    memoryFilmToggle.setAttribute('aria-label', 'Jeda film');
+    memoryFilm.showModal();
+    showMemoryFilmScene(0);
+    bgMusic?.play().catch(() => {});
+    memoryFilmClose.focus();
+  }
+
+  function closeMemoryFilm() {
+    if (!memoryFilm.open) return;
+    window.clearTimeout(memoryFilmTimer);
+    memoryFilmVideo.pause();
+    memoryFilm.close();
+  }
+
+  memoryFilmStart?.addEventListener('click', openMemoryFilm);
+  memoryFilmClose?.addEventListener('click', closeMemoryFilm);
+  memoryFilmPrevious?.addEventListener('click', () => showMemoryFilmScene(memoryFilmIndex - 1));
+  memoryFilmNext?.addEventListener('click', () => showMemoryFilmScene(memoryFilmIndex + 1));
+  memoryFilmToggle?.addEventListener('click', () => {
+    memoryFilmPaused = !memoryFilmPaused;
+    if (memoryFilmPaused) {
+      memoryFilmRemaining = Math.max(0, memoryFilmDeadline - Date.now());
+      window.clearTimeout(memoryFilmTimer);
+      memoryFilmVideo.pause();
+      bgMusic?.pause();
+      memoryFilmToggle.textContent = '▶';
+      memoryFilmToggle.setAttribute('aria-label', 'Lanjutkan film');
+      return;
+    }
+
+    memoryFilmToggle.textContent = 'Ⅱ';
+    memoryFilmToggle.setAttribute('aria-label', 'Jeda film');
+    if (memoryFilmScenes[memoryFilmIndex].type === 'video') memoryFilmVideo.play().catch(() => {});
+    bgMusic?.play().catch(() => {});
+    scheduleMemoryFilmAdvance(memoryFilmRemaining || 4500);
+  });
+  memoryFilm.addEventListener('click', (event) => {
+    if (event.target === memoryFilm) closeMemoryFilm();
+  });
+  memoryFilm.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    closeMemoryFilm();
+  });
+  memoryFilm.addEventListener('close', () => {
+    window.clearTimeout(memoryFilmTimer);
+    memoryFilmVideo.pause();
+    memoryFilmVideo.removeAttribute('src');
+    memoryFilmVideo.load();
+    memoryFilmReturnFocus?.focus({ preventScroll: true });
+  });
+  memoryFilm.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowLeft') showMemoryFilmScene(memoryFilmIndex - 1);
+    if (event.key === 'ArrowRight') showMemoryFilmScene(memoryFilmIndex + 1);
+    if (event.key === ' ' && event.target === memoryFilm) {
+      event.preventDefault();
+      memoryFilmToggle.click();
+    }
   });
 }
 

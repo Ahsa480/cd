@@ -7,8 +7,13 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="page-loader" aria-label="loading page">
-      <div class="loader-ring"></div>
+    <div class="page-loader" role="status" aria-label="Menyiapkan kenangan">
+      <div class="loader-content">
+        <span class="loader-kicker">Sebuah cerita kecil</span>
+        <p class="loader-title">Jeje <span>&</span> Aku</p>
+        <div class="loader-progress" aria-hidden="true"><span></span></div>
+        <span class="loader-caption">Menyiapkan kenangan...</span>
+      </div>
     </div>
 
     <header class="topbar">
@@ -35,6 +40,7 @@
               Karena meski waktu mungkin memisahkan, kenangan kita tetap terasa hangat.
             </p>
             <div class="cta-row">
+              <button class="btn btn-primary" id="play-memory-film" type="button">▶ Putar Cerita Kita</button>
               <a class="btn btn-primary" href="#kenangan">Lihat Kenangan</a>
               <a class="btn btn-secondary" href="#kata">Baca Kata Terakhir</a>
             </div>
@@ -351,79 +357,79 @@
             <h3>Video Kenangan</h3>
             <div class="video-grid">
               <div class="video-card">
-                <video controls playsinline muted>
+                <video controls playsinline muted preload="metadata" poster="images/jeje-1.png">
                   <source src="images/video-jeje-1.mp4" type="video/mp4" />
                   Browser kamu tidak mendukung video HTML5.
                 </video>
               </div>
               <div class="video-card">
-                <video controls playsinline muted>
+                <video controls playsinline muted preload="metadata" poster="images/jeje-2.png">
                   <source src="images/video-jeje-2.mp4" type="video/mp4" />
                   Browser kamu tidak mendukung video HTML5.
                 </video>
               </div>
               <div class="video-card">
-                <video controls playsinline muted preload="metadata">
+                <video controls playsinline muted preload="metadata" poster="images/jeje-3.png">
                   <source src="images/video-jeje-3.mp4" type="video/mp4" />
                   Browser kamu tidak mendukung video HTML5.
                 </video>
               </div>
               <div class="video-card">
-                <video controls playsinline muted preload="metadata">
+                <video controls playsinline muted preload="metadata" poster="images/jeje-4.png">
                   <source src="images/video-jeje-4.mp4" type="video/mp4" />
                   Browser kamu tidak mendukung video HTML5.
                 </video>
               </div>
               <div class="video-card">
-                <video controls playsinline muted preload="metadata">
+                <video controls playsinline muted preload="metadata" poster="images/jeje-5.JPG">
                   <source src="images/video-jeje-5.mp4" type="video/mp4" />
                   Browser kamu tidak mendukung video HTML5.
                 </video>
               </div>
               <div class="video-card">
-                <video controls playsinline muted preload="metadata">
+                <video controls playsinline muted preload="metadata" poster="images/jeje-6.JPG">
                   <source src="images/video-jeje-6.mp4" type="video/mp4" />
                   Browser kamu tidak mendukung video HTML5.
                 </video>
               </div>
               <div class="video-card">
-                <video controls playsinline muted preload="metadata">
+                <video controls playsinline muted preload="metadata" poster="images/jeje-7.JPG">
                   <source src="images/video-jeje-7.mp4" type="video/mp4" />
                   Browser kamu tidak mendukung video HTML5.
                 </video>
               </div>
               <div class="video-card">
-                <video controls playsinline muted preload="metadata">
+                <video controls playsinline muted preload="metadata" poster="images/jeje-8.JPG">
                   <source src="images/video-jeje-8.mp4" type="video/mp4" />
                   Browser kamu tidak mendukung video HTML5.
                 </video>
               </div>
               <div class="video-card">
-                <video controls playsinline muted preload="metadata">
+                <video controls playsinline muted preload="metadata" poster="images/jeje-9.JPG">
                   <source src="images/video-jeje-9.mp4" type="video/mp4" />
                   Browser kamu tidak mendukung video HTML5.
                 </video>
               </div>
               <div class="video-card">
-                <video controls playsinline muted preload="metadata">
+                <video controls playsinline muted preload="metadata" poster="images/jeje-10.jpeg">
                   <source src="images/video-jeje-10.mp4" type="video/mp4" />
                   Browser kamu tidak mendukung video HTML5.
                 </video>
               </div>
               <div class="video-card">
-                <video controls playsinline muted preload="metadata">
+                <video controls playsinline muted preload="metadata" poster="images/jeje-11.jpeg">
                   <source src="images/video-jeje-11.mp4" type="video/mp4" />
                   Browser kamu tidak mendukung video HTML5.
                 </video>
               </div>
               <div class="video-card">
-                <video controls playsinline muted preload="metadata">
+                <video controls playsinline muted preload="metadata" poster="images/jeje-12.jpeg">
                   <source src="images/video-jeje-12.mp4" type="video/mp4" />
                   Browser kamu tidak mendukung video HTML5.
                 </video>
               </div>
               <div class="video-card">
-                <video controls playsinline muted preload="metadata">
+                <video controls playsinline muted preload="metadata" poster="images/jeje-13.jpeg">
                   <source src="images/video-jeje-13.mp4" type="video/mp4" />
                   Browser kamu tidak mendukung video HTML5.
                 </video>
@@ -451,6 +457,42 @@
           </figcaption>
         </figure>
         <button class="photo-viewer-arrow" id="photo-viewer-next" type="button" aria-label="Foto berikutnya">›</button>
+      </div>
+    </dialog>
+
+    <dialog class="memory-film" id="memory-film" aria-label="Film kenangan Jeje dan aku">
+      <div class="memory-film-frame">
+        <img class="memory-film-media" id="memory-film-image" alt="" />
+        <video class="memory-film-media" id="memory-film-video" playsinline muted hidden></video>
+        <div class="memory-film-shade" aria-hidden="true"></div>
+
+        <header class="memory-film-header">
+          <div>
+            <span class="memory-film-kicker">A little film of us</span>
+            <span class="memory-film-title">Jeje <i>&</i> Aku</span>
+          </div>
+          <button class="memory-film-close" id="memory-film-close" type="button" aria-label="Tutup film">×</button>
+        </header>
+
+        <div class="memory-film-copy" aria-live="polite">
+          <p class="memory-film-type" id="memory-film-type">KENANGAN</p>
+          <p class="memory-film-line" id="memory-film-line"></p>
+          <p class="memory-film-status" id="memory-film-status"></p>
+        </div>
+
+        <footer class="memory-film-controls">
+          <div class="memory-film-progress" aria-hidden="true">
+            <span id="memory-film-progress"></span>
+          </div>
+          <div class="memory-film-control-row">
+            <span class="memory-film-count" id="memory-film-count">1 / 38</span>
+            <div class="memory-film-buttons">
+              <button id="memory-film-previous" type="button" aria-label="Adegan sebelumnya">‹</button>
+              <button id="memory-film-toggle" type="button" aria-label="Jeda film">Ⅱ</button>
+              <button id="memory-film-next" type="button" aria-label="Adegan berikutnya">›</button>
+            </div>
+          </div>
+        </footer>
       </div>
     </dialog>
 
